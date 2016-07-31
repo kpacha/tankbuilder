@@ -2,9 +2,9 @@ name := "tank-builder"
 
 organization := "com.github.kpacha"
 
-version := "0.0.3"
+version := "0.0.4"
 
-scalaVersion := "2.11.7"
+scalaVersion := "2.11.8"
 
 libraryDependencies ++={
   Seq(
