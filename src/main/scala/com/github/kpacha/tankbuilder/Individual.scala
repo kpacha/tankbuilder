@@ -42,10 +42,18 @@ class Individual(val generation: Integer, val id: Integer, val methods: Map[Stri
     s"package $subjectPackage;\nimport robocode.*;\npublic class $name extends AdvancedRobot {\n$classBody\n}\n"
   }
 
+  private def shuffle(methods: Map[String, StatementPart]): Map[String, StatementPart] = {
+    val keys = methods.keySet.toList
+    val (candidate1, candidate2) = (keys(Random.generator.nextInt(keys.size)), keys(Random.generator.nextInt(keys.size)))
+    val (stmt1, stmt2) = (methods(candidate1), methods(candidate2))
+    methods + (candidate1 -> stmt2) + (candidate2 -> stmt1)
+  }
+
   private def mutate(methods: Map[String, StatementPart]): Map[String, StatementPart] = {
     val candidate = Individual.methods(Random.generator.nextInt(Individual.methods.size))
-    val stmt = if (methods contains candidate) methods(candidate).mutate else Statement.random
-    methods + (candidate -> stmt)
+    val stmt = if (methods contains candidate) methods(candidate).mutate else Statement.empty
+    val mix = methods + (candidate -> stmt)
+    if (Random.generator.nextBoolean) mix else shuffle(mix)
   }
 
   def reproduceWith(that: Individual, newId: Integer): Individual =
