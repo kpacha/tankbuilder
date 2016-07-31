@@ -1,14 +1,25 @@
 package com.github.kpacha.tankbuilder
 
+import scala.xml.{ Elem, Node, NodeSeq }
+
 trait StatementPart {
   def toString: String
   def mutate: StatementPart
   def mixWith(that: StatementPart): StatementPart
+  def fromXML(node: Node): StatementPart
+  def toXML(): Node
 }
 
 object Statement {
   def randomStatementPart = if (Random.generator.nextBoolean && Random.generator.nextBoolean) Condition.random else Action.random
   def random = new Statement(List(randomStatementPart))
+
+  def fromXML(node: Node): StatementPart = node.label match {
+    case t if (t.startsWith("condition")) => Condition fromXML node
+    case t if (t.startsWith("action")) => Action fromXML node
+    case _ => fromXML(node.child)
+  }
+  def fromXML(nodes: NodeSeq): Statement = new Statement(nodes.toList map fromXML)
 }
 
 class Statement(val parts: List[StatementPart] = Nil) extends StatementPart {
@@ -44,4 +55,7 @@ class Statement(val parts: List[StatementPart] = Nil) extends StatementPart {
     case c: Condition => new Statement(c :: parts)
     case a: Action => new Statement(a :: parts)
   }
+
+  def fromXML(node: Node): StatementPart = Statement fromXML node
+  def toXML(): Elem = <statement>{ parts map (_.toXML) }</statement>
 }

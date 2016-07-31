@@ -1,15 +1,28 @@
 package com.github.kpacha.tankbuilder
 
+import scala.xml.{ Elem, Node }
 import Expression.ExpressionTree
 
 object Condition {
   def apply(isLoop: Boolean, phrase: ConditionPhrase, statement: StatementPart) = new Condition(isLoop, phrase, statement)
   def random: Condition = Condition(Random.generator.nextBoolean && Random.generator.nextBoolean && Random.generator.nextBoolean, randomArithOperation, Statement.random)
-  private val typesOfArithOps = Seq("<", "<=", "==", "!=", ">=", ">")
-  private val typesOfBooleanOps = Seq("&&", "||")
+  val typesOfArithOps = Seq("<", "<=", "==", "!=", ">=", ">")
+  val typesOfBooleanOps = Seq("&&", "||")
   def nextArithOperation = typesOfArithOps(Random.generator.nextInt(typesOfArithOps.size))
   def randomArithOperation = ArithmeticCondition(Expression.random, nextArithOperation, Expression.random)
   def nextBooleanOperation = typesOfBooleanOps(Random.generator.nextInt(typesOfBooleanOps.size))
+
+  def phraseFromXML(node: Node): ConditionPhrase = (node \@ "type") match {
+    case "arithmetic" =>
+      ArithmeticCondition(((node \ "left" \ "expression") map Expression.fromXML).head, (node \@ "op"), ((node \ "right" \ "expression") map Expression.fromXML).head)
+    case "boolean" =>
+      BooleanCondition(((node \ "left" \ "phrase").toList map phraseFromXML).head, (node \@ "op"), ((node \ "left" \ "phrase").toList map phraseFromXML).head)
+  }
+
+  def fromXML(node: Node): Condition = {
+    val conditionType = (node \@ "isLoop") == "true"
+    Condition(conditionType, ((node \ "phrase").toList map phraseFromXML).head, Statement fromXML ((node \ "statement").toList map (_.child)).flatten)
+  }
 
   sealed trait ConditionPhrase {
     val changeLeft = 0.33
@@ -36,6 +49,11 @@ object Condition {
         else BooleanCondition(l, op, r.mutate)
       }
     }
+
+    def toXML(): Elem = this match {
+      case ArithmeticCondition(l, op, r) => <phrase type="arithmetic" op={ op.toString }><left>{ l.toXML }</left><right>{ r.toXML }</right></phrase>
+      case BooleanCondition(l, op, r) => <phrase type="boolean" op={ op.toString }><left>{ l.toXML }</left><right>{ r.toXML }</right></phrase>
+    }
   }
 
   case class ArithmeticCondition(left: ExpressionTree, operation: String, right: ExpressionTree) extends ConditionPhrase
@@ -58,4 +76,7 @@ class Condition(isLoop: Boolean, phrase: Condition.ConditionPhrase, statement: S
     case s: Statement => that mixWith this
     case _ => new Statement(List(this, that))
   }
+
+  def fromXML(node: Node): Condition = Condition fromXML node
+  def toXML(): Elem = <condition isLoop={ isLoop.toString }>{ phrase.toXML }{ statement.toXML }</condition>
 }

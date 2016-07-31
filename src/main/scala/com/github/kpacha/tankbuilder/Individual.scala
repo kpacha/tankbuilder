@@ -1,24 +1,34 @@
 package com.github.kpacha.tankbuilder
 
+import scala.xml.{ Elem, Node }
+
 object Individual {
   val methods = Seq(
-//    "public void onBulletHit(BulletHitEvent event) {\n",
-//    "public void onBulletHitBullet(BulletHitBulletEvent event) {\n",
-//    "public void onBulletMissed(BulletMissedEvent event) {\n",
+    //    "public void onBulletHit(BulletHitEvent event) {\n",
+    //    "public void onBulletHitBullet(BulletHitBulletEvent event) {\n",
+    //    "public void onBulletMissed(BulletMissedEvent event) {\n",
     "public void onHitByBullet(HitByBulletEvent event) {\n",
     "public void onHitRobot(HitRobotEvent event) {\n",
     "public void onHitWall(HitWallEvent event) {\n",
     "public void onScannedRobot(ScannedRobotEvent event) {\n",
     "public void run() {\n\tsetAdjustGunForRobotTurn(true);\n\tsetAdjustRadarForGunTurn(true);\n\tsetAdjustRadarForRobotTurn(true);\n")
 
-//  def random(id: Integer) = new Individual(0, id, (methods filter (_ => Random.generator.nextBoolean) map ((_, new Statement(Nil)))).toMap)
-          
+  //  def random(id: Integer) = new Individual(0, id, (methods filter (_ => Random.generator.nextBoolean) map ((_, new Statement(Nil)))).toMap)
+
   val startingPointScan = new Statement(List(
-      Action("setTurnGunRightRadians", Expression.ExpressionNode(Expression.Input("event.getBearingRadians()"), Expression.ExpressionOp("-"), Expression.Input("getGunHeadingRadians()"))),
-      Action("setFire", Expression.Constant(2))))
+    Action("setTurnGunRightRadians", Expression.ExpressionNode(Expression.Input("event.getBearingRadians()"), Expression.ExpressionOp("-"), Expression.Input("getGunHeadingRadians()"))),
+    Action("setFire", Expression.Constant(2))))
 
   def random(id: Integer) = new Individual(0, id, Map(methods(4) -> new Statement(List(Action("turnRadarRightRadians", Expression.Constant(Double.MaxValue)))),
-      methods(3) -> startingPointScan))
+    methods(3) -> startingPointScan))
+
+  def fromXML(node: Node) = {
+    val generation = (node \@ "generation").toInt
+    val id = (node \@ "id").toInt
+    new Individual(generation, id, ((node \ "method") map {
+      method => ((method \@ "name"), Statement fromXML method)
+    }).toMap)
+  }
 }
 
 class Individual(val generation: Integer, val id: Integer, val methods: Map[String, StatementPart]) {
@@ -49,9 +59,11 @@ class Individual(val generation: Integer, val id: Integer, val methods: Map[Stri
         if (that.methods contains m._1) {
           if (Random.generator.nextBoolean) acc + (m._1 -> that.methods(m._1))
           else acc + (m._1 -> that.methods(m._1).mixWith(m._2))
-        }
-        else acc + m
+        } else acc + m
       }
       new Individual(generation + 1, newId, mutate(mix))
     }
+
+  def toXML: Elem =
+    <individual generation={ generation.toString } id={ id.toString } fitness={ fitness.toString }>{ methods.keySet map { method => <method name={ method }>{ methods(method).toXML }</method> } }</individual>
 }
