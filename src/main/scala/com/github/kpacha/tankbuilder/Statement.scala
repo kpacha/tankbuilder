@@ -13,6 +13,7 @@ trait StatementPart {
 object Statement {
   def randomStatementPart = if (Random.generator.nextBoolean && Random.generator.nextBoolean) Condition.random else Action.random
   def random = new Statement(List(randomStatementPart))
+  def empty = new Statement(Nil)
 
   def fromXML(node: Node): StatementPart = node.label match {
     case "condition" => Condition fromXML node
