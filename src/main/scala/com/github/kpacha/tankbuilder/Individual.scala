@@ -4,9 +4,9 @@ import scala.xml.{ Elem, Node }
 
 object Individual {
   val methodSignature = Map(
-    //    "onBulletHit" -> "public void onBulletHit(BulletHitEvent event) {\n",
-    //    "onBulletHitBullet" -> "public void onBulletHitBullet(BulletHitBulletEvent event) {\n",
-    //    "onBulletMissed" -> "public void onBulletMissed(BulletMissedEvent event) {\n",
+    "onBulletHit" -> "public void onBulletHit(BulletHitEvent event) {\n",
+    "onBulletHitBullet" -> "public void onBulletHitBullet(BulletHitBulletEvent event) {\n",
+    "onBulletMissed" -> "public void onBulletMissed(BulletMissedEvent event) {\n",
     "onHitByBullet" -> "public void onHitByBullet(HitByBulletEvent event) {\n",
     "onHitRobot" -> "public void onHitRobot(HitRobotEvent event) {\n",
     "onHitWall" -> "public void onHitWall(HitWallEvent event) {\n",
