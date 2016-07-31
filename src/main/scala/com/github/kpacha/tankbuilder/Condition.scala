@@ -21,7 +21,7 @@ object Condition {
 
   def fromXML(node: Node): Condition = {
     val conditionType = (node \@ "isLoop") == "true"
-    Condition(conditionType, ((node \ "phrase").toList map phraseFromXML).head, Statement fromXML ((node \ "statement").toList map (_.child)).flatten)
+    Condition(conditionType, ((node \ "phrase").toList map phraseFromXML).head, Statement fromXML (node \ "statement").head)
   }
 
   sealed trait ConditionPhrase {

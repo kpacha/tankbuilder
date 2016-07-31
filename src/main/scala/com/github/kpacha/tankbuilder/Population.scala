@@ -1,14 +1,14 @@
 package com.github.kpacha.tankbuilder
 
-import scala.xml.{ Elem, Node, NodeSeq }
+import scala.xml.{ Elem, Node, XML }
 
 object Population {
   val eliteSize = .1
   def random(size: Integer) = new Population(0, (for (id <- 0 until size) yield Individual.random(id)).toList)
-  def loadXMLFile(file: String) = fromXML(scala.xml.XML.loadFile(file))
+  def loadXMLFile(file: String) = fromXML(XML.loadFile(file))
   def fromXML(node: Node) = {
     val individuals = (node \ "individual").toList map (Individual fromXML _)
-    new Population((node \@ "generation").toInt, individuals.sortBy(_.id))
+    new Population((node \@ "generation").toInt, individuals)
   }
 }
 
@@ -31,4 +31,5 @@ class Population(generation: Integer, val individuals: List[Individual]) {
   }
 
   def toXML: Elem = <population generation={ generation.toString }>{ individuals map (_.toXML) }</population>
+  def saveAsXML(path: String) = XML.save(path, toXML, "UTF-8", true, null)
 }

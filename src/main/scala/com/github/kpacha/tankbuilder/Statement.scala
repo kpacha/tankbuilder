@@ -1,6 +1,6 @@
 package com.github.kpacha.tankbuilder
 
-import scala.xml.{ Elem, Node, NodeSeq }
+import scala.xml.{ Elem, Node }
 
 trait StatementPart {
   def toString: String
@@ -15,11 +15,10 @@ object Statement {
   def random = new Statement(List(randomStatementPart))
 
   def fromXML(node: Node): StatementPart = node.label match {
-    case t if (t.startsWith("condition")) => Condition fromXML node
-    case t if (t.startsWith("action")) => Action fromXML node
-    case _ => fromXML(node.child)
+    case "condition" => Condition fromXML node
+    case "action" => Action fromXML node
+    case "statement" => new Statement(node.child.toList map fromXML)
   }
-  def fromXML(nodes: NodeSeq): Statement = new Statement(nodes.toList map fromXML)
 }
 
 class Statement(val parts: List[StatementPart] = Nil) extends StatementPart {

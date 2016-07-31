@@ -3,15 +3,17 @@ package com.github.kpacha.tankbuilder
 import scala.xml.{ Elem, Node }
 
 object Individual {
-  val methods = Seq(
-    //    "public void onBulletHit(BulletHitEvent event) {\n",
-    //    "public void onBulletHitBullet(BulletHitBulletEvent event) {\n",
-    //    "public void onBulletMissed(BulletMissedEvent event) {\n",
-    "public void onHitByBullet(HitByBulletEvent event) {\n",
-    "public void onHitRobot(HitRobotEvent event) {\n",
-    "public void onHitWall(HitWallEvent event) {\n",
-    "public void onScannedRobot(ScannedRobotEvent event) {\n",
-    "public void run() {\n\tsetAdjustGunForRobotTurn(true);\n\tsetAdjustRadarForGunTurn(true);\n\tsetAdjustRadarForRobotTurn(true);\n")
+  val methodSignature = Map(
+    //    "onBulletHit" -> "public void onBulletHit(BulletHitEvent event) {\n",
+    //    "onBulletHitBullet" -> "public void onBulletHitBullet(BulletHitBulletEvent event) {\n",
+    //    "onBulletMissed" -> "public void onBulletMissed(BulletMissedEvent event) {\n",
+    "onHitByBullet" -> "public void onHitByBullet(HitByBulletEvent event) {\n",
+    "onHitRobot" -> "public void onHitRobot(HitRobotEvent event) {\n",
+    "onHitWall" -> "public void onHitWall(HitWallEvent event) {\n",
+    "onScannedRobot" -> "public void onScannedRobot(ScannedRobotEvent event) {\n",
+    "run" -> "public void run() {\n\tsetAdjustGunForRobotTurn(true);\n\tsetAdjustRadarForGunTurn(true);\n\tsetAdjustRadarForRobotTurn(true);\n")
+
+  val methods = methodSignature.keySet.toList
 
   //  def random(id: Integer) = new Individual(0, id, (methods filter (_ => Random.generator.nextBoolean) map ((_, new Statement(Nil)))).toMap)
 
@@ -26,7 +28,7 @@ object Individual {
     val generation = (node \@ "generation").toInt
     val id = (node \@ "id").toInt
     new Individual(generation, id, ((node \ "method") map {
-      method => ((method \@ "name"), Statement fromXML method)
+      method => ((method \@ "name"), Statement fromXML (method \ "statement").head)
     }).toMap)
   }
 }
@@ -41,13 +43,14 @@ class Individual(val generation: Integer, val id: Integer, val methods: Map[Stri
   val filePath = s"$subjectPackage/$name.java"
 
   override def toString = {
-    val heading = s"package $subjectPackage;\nimport robocode.*;\npublic class $name extends AdvancedRobot {\n"
-    val body = Individual.methods map (m => m + (methods getOrElse (m, "")) + "}\n") mkString "\n"
-    heading + body + "}\n"
+    def methodBody(methodKey: String) = methods getOrElse (methodKey, "")
+    def methodToString(methodKey: String): String = Individual.methodSignature(methodKey) + methodBody(methodKey) + "}\n"
+    val classBody = Individual.methods map methodToString mkString "\n"
+    s"package $subjectPackage;\nimport robocode.*;\npublic class $name extends AdvancedRobot {\n$classBody\n}\n"
   }
 
   private def mutate(methods: Map[String, StatementPart]): Map[String, StatementPart] = {
-    val candidate = Individual.methods.toList(Random.generator.nextInt(Individual.methods.size))
+    val candidate = Individual.methods(Random.generator.nextInt(Individual.methods.size))
     val stmt = if (methods contains candidate) methods(candidate).mutate else Statement.random
     methods + (candidate -> stmt)
   }

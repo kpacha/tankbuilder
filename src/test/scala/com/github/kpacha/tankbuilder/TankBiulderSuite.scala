@@ -15,8 +15,8 @@ trait TankBiulderSuite {
 
   lazy val stmt = new Statement(List(cond1, cond2, action))
 
-  lazy val individual1 = new Individual(1, 1, Map(Individual.methods.last -> stmt))
-  lazy val individual2 = new Individual(1, 2, Map(Individual.methods.head -> stmt))
+  lazy val individual1 = new Individual(1, 1, Map("run" -> stmt))
+  lazy val individual2 = new Individual(1, 2, Map("onHitByBullet" -> stmt))
 
   lazy val population = new Population(1, List(individual1, individual2))
 }
