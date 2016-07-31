@@ -15,14 +15,7 @@ object Individual {
 
   val methods = methodSignature.keySet.toList
 
-  //  def random(id: Integer) = new Individual(0, id, (methods filter (_ => Random.generator.nextBoolean) map ((_, new Statement(Nil)))).toMap)
-
-  val startingPointScan = new Statement(List(
-    Action("setTurnGunRightRadians", Expression.ExpressionNode(Expression.Input("event.getBearingRadians()"), Expression.ExpressionOp("-"), Expression.Input("getGunHeadingRadians()"))),
-    Action("setFire", Expression.Constant(2))))
-
-  def random(id: Integer) = new Individual(0, id, Map(methods(4) -> new Statement(List(Action("turnRadarRightRadians", Expression.Constant(Double.MaxValue)))),
-    methods(3) -> startingPointScan))
+  def random(id: Integer) = new Individual(0, id, (methods filter (_ => Random.generator.nextBoolean) map ((_, Statement.empty))).toMap)
 
   def fromXML(node: Node) = {
     val generation = (node \@ "generation").toInt
