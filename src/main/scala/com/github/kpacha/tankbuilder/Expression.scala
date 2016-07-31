@@ -16,9 +16,8 @@ object Expression {
     case "constant" => Constant(node.text.toDouble)
     case "input" => Input(node.text)
     case "node" =>
-      val l = ((node \ "left") flatMap (l => (l \ "expression") map fromXML)).head
-      val r = ((node \ "right") flatMap (l => (l \ "expression") map fromXML)).head
-      ExpressionNode(l, ExpressionOp((node \@ "op")), r)
+      def exp(side: String, node: Node) = fromXML((node \ side \ "expression").head)
+      ExpressionNode(exp("left", node), ExpressionOp((node \@ "op")), exp("right", node))
   }
 
   object ExpressionOp {
@@ -41,17 +40,17 @@ object Expression {
 
     def mutate: ExpressionTree = this match {
       case Constant(c) =>
-        if (Random.generator.nextBoolean) Constant(c * (2 * Random.generator.nextDouble - 1))
+        if (Random.generator.nextBoolean) Constant(c * (.5 + Random.generator.nextDouble))
         else if (Random.generator.nextBoolean) ExpressionNode(this, ExpressionOp.random, Expression.random)
         else randomInput
       case Input(i) =>
-        if (Random.generator.nextBoolean) randomInput
-        else if (Random.generator.nextBoolean) ExpressionNode(this, ExpressionOp.random, Expression.random)
+        if (Random.generator.nextBoolean) ExpressionNode(this, ExpressionOp.random, Expression.random)
+        else if (Random.generator.nextBoolean) randomInput
         else randomConstant
       case ExpressionNode(l, op, r) =>
-        val rnd = 3 * Random.generator.nextDouble
-        if (rnd < 1) ExpressionNode(l.mutate, op, r)
-        else if (rnd < 2) ExpressionNode(l, op.mutate, r)
+        val rnd = 5 * Random.generator.nextDouble
+        if (rnd < 2) ExpressionNode(l.mutate, op, r)
+        else if (rnd < 3) ExpressionNode(l, op.mutate, r)
         else ExpressionNode(l, op, r.mutate)
     }
     def toXML(): Elem = this match {
