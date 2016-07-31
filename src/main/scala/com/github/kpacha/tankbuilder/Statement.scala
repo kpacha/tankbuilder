@@ -25,7 +25,7 @@ object Statement {
 class Statement(val parts: List[StatementPart] = Nil) extends StatementPart {
   import Statement._
 
-  private val addRange = 0.3
+  private val addRange = 0.2
   private val removeRange = addRange + 0.1
   private val shuffleRange = removeRange + 0.1
 
